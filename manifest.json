@@ -1,0 +1,13 @@
+  {
+    "name": "MTGGoldfish Rotation Checker",
+    "version": "1.0",
+    "description": "Color card names on MTGGoldfish decks according to how soon they rotate.",
+      "content_scripts": [{
+        "js": ["content.js"],
+        "matches": ["https://www.mtggoldfish.com/archetype*"]
+      }],
+    "web_accessible_resources": [
+        "all_cards.json"
+    ],
+    "manifest_version": 2
+  }
