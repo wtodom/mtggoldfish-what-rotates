@@ -41,6 +41,8 @@ function colorDeck() {
           var deck = document.getElementsByClassName("deck-col-card");
           for (let card of deck) {
             cardName = card.innerText.trim();
+            if (cardName.includes('//'))
+                cardName = cardName.split('//')[0].trim()
             if (basics.includes(cardName))
                 card.style.backgroundColor = green;
             var cardSets = getSets(cardName, allSets);
