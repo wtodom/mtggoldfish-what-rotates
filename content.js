@@ -1,24 +1,64 @@
-// Copyright 2018 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+const basics = ["Plains", "Island", "Swamp", "Mountain", "Forest"];
+const green = '#c4ffdf'
+const yellow = '#fdffc4'
 
-function loadJSON(callback) {
-  var xobj = new XMLHttpRequest();
-  xobj.overrideMimeType("application/json");
-  xobj.open('GET', chrome.runtime.getURL('all_sets.json'), true);
-  xobj.onreadystatechange = function () {
-    if (xobj.readyState == 4 && xobj.status == "200") {
-      callback(JSON.parse(xobj.responseText));
+function getSets(card, sets) {
+  var setCodes = [];
+  for (setCode in sets) {
+    if (sets[setCode]['cards'].includes(card)) {
+      setCodes.push(setCode);
     }
-  };
-  xobj.send(null);
+  }
+  return setCodes;
 }
 
-loadJSON(function(json) {
-  console.log(json);
-});
+function sortStandardSets(sets) {
+  var rotatesSoon = [];
+  var safe = [];
+  var now = Date.now();
+  var threshold = 12960000000  // 5 months in seconds
+  for (let set of sets.sets) {
+    var enter = Date.parse(set.enter_date);
+    var exit = Date.parse(set.exit_date);
+    if (enter < now && isNaN(exit))
+        safe.push(set.code);
+    else if (enter < now && exit > now)
+        rotatesSoon.push(set.code);
+  }
+  return {'safe': safe, 'soon': rotatesSoon};
+}
 
-// var deck = document.getElementsByClassName('deck-col-card');
-// for (let card of deck) {
-//     console.log(JSON.stringify(card.innerText.trim()));
-// }
+function colorDeck() {
+  var setsURI = chrome.runtime.getURL("all_cards.json");
+  fetch(setsURI)
+    .then(response => response.json())
+    .then(allSets => {
+      fetch("https://whatsinstandard.com/api/v5/sets.json")
+        .then(response => response.json())
+        .then(standardSets => {
+          var rotationSets = sortStandardSets(standardSets);
+          console.log(rotationSets);
+          var deck = document.getElementsByClassName("deck-col-card");
+          for (let card of deck) {
+            cardName = card.innerText.trim();
+            if (basics.includes(cardName))
+                card.style.backgroundColor = green;
+            var cardSets = getSets(cardName, allSets);
+            for (let set of rotationSets['soon']) {
+                if (cardSets.includes(set)) {
+                    card.style.backgroundColor = yellow;
+                    break;
+                }
+            }
+            for (let set of rotationSets['safe']) {
+                if (cardSets.includes(set)) {
+                    card.style.backgroundColor = green;
+                    break;
+                }
+            }
+          }
+        });
+    });
+}
+
+colorDeck();

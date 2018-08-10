@@ -10,7 +10,11 @@ with open('AllSets.json', 'r') as f:
         for card in cards:
             if card['name'] not in basics:
                 if set_name not in minified_cards:
-                    minified_cards[set_name] = []
-                minified_cards[set_name].append(card['name'])
+                    minified_cards[set_name] = {
+                        'releaseDate': '',
+                        'cards': []
+                    }
+                    minified_cards[set_name]['releaseDate'] = details['releaseDate']
+                minified_cards[set_name]['cards'].append(card['name'])
     print json.dumps(minified_cards)
 
